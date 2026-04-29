@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "MechanicTranslator"
+version = "1.0.0"
+id = "artifacts/mechanic-translator"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19531
+
+[services.development]
+run = "pnpm --filter @workspace/mechanic-translator run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/mechanic-translator", "run", "build" ]
+publicDir = "artifacts/mechanic-translator/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19531"
+BASE_PATH = "/"

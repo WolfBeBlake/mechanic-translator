@@ -3,20 +3,27 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: MechanicTranslator API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: account
+    description: Current user account
+  - name: translations
+    description: Mechanic quote translations
+  - name: billing
+    description: Subscription and billing
+  - name: admin
+    description: Admin-only endpoints
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +31,205 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /me:
+    get:
+      operationId: getMe
+      tags: [account]
+      summary: Get current user with subscription and usage
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MeResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /translate:
+    post:
+      operationId: translateQuote
+      tags: [translations]
+      summary: Translate a mechanic quote into plain English
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TranslateRequest"
+      responses:
+        "200":
+          description: Translation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Translation"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "402":
+          description: Free quota exhausted, upgrade required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "429":
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /translations:
+    get:
+      operationId: listTranslations
+      tags: [translations]
+      summary: List the current user's translations
+      responses:
+        "200":
+          description: List of translations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Translation"
+
+  /translations/{id}:
+    get:
+      operationId: getTranslation
+      tags: [translations]
+      summary: Get a specific translation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Translation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Translation"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    delete:
+      operationId: deleteTranslation
+      tags: [translations]
+      summary: Delete a translation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /billing/checkout:
+    post:
+      operationId: createCheckoutSession
+      tags: [billing]
+      summary: Start a Pro subscription checkout
+      responses:
+        "200":
+          description: Checkout session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckoutSession"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "503":
+          description: Billing not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Admin dashboard statistics
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /admin/users:
+    get:
+      operationId: listAdminUsers
+      tags: [admin]
+      summary: List recent users (admin only)
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminUser"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +237,193 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+      required: [error]
+
+    PriceRange:
+      type: object
+      properties:
+        min:
+          type: number
+        max:
+          type: number
+        currency:
+          type: string
+      required: [min, max, currency]
+
+    Urgency:
+      type: string
+      enum: [Critical, Soon, Optional]
+
+    Verdict:
+      type: string
+      enum: [fair, high, suspicious]
+
+    RepairItem:
+      type: object
+      properties:
+        title:
+          type: string
+        explanation:
+          type: string
+        urgency:
+          $ref: "#/components/schemas/Urgency"
+        fairPrice:
+          $ref: "#/components/schemas/PriceRange"
+        quotedPrice:
+          type: number
+          nullable: true
+        flags:
+          type: array
+          items:
+            type: string
+      required: [title, explanation, urgency, fairPrice, flags]
+
+    TranslationResult:
+      type: object
+      properties:
+        summary:
+          type: string
+        verdict:
+          $ref: "#/components/schemas/Verdict"
+        quotedTotal:
+          type: number
+          nullable: true
+        fairTotal:
+          $ref: "#/components/schemas/PriceRange"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/RepairItem"
+        redFlags:
+          type: array
+          items:
+            type: string
+        negotiationScript:
+          type: string
+      required:
+        - summary
+        - verdict
+        - fairTotal
+        - items
+        - redFlags
+        - negotiationScript
+
+    Translation:
+      type: object
+      properties:
+        id:
+          type: integer
+        inputText:
+          type: string
+        result:
+          $ref: "#/components/schemas/TranslationResult"
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, inputText, result, createdAt]
+
+    TranslateRequest:
+      type: object
+      properties:
+        inputText:
+          type: string
+          minLength: 5
+          maxLength: 8000
+      required: [inputText]
+
+    SubscriptionTier:
+      type: string
+      enum: [free, pro]
+
+    MeResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        clerkUserId:
+          type: string
+        email:
+          type: string
+        subscriptionTier:
+          $ref: "#/components/schemas/SubscriptionTier"
+        translationsUsed:
+          type: integer
+        freeLimit:
+          type: integer
+        translationsRemaining:
+          type: integer
+          nullable: true
+        isAdmin:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - clerkUserId
+        - email
+        - subscriptionTier
+        - translationsUsed
+        - freeLimit
+        - isAdmin
+        - createdAt
+
+    CheckoutSession:
+      type: object
+      properties:
+        url:
+          type: string
+          nullable: true
+        configured:
+          type: boolean
+        message:
+          type: string
+      required: [configured, message]
+
+    AdminStats:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        totalTranslations:
+          type: integer
+        freeUsers:
+          type: integer
+        proUsers:
+          type: integer
+        translationsLast7Days:
+          type: integer
+        signupsLast7Days:
+          type: integer
+      required:
+        - totalUsers
+        - totalTranslations
+        - freeUsers
+        - proUsers
+        - translationsLast7Days
+        - signupsLast7Days
+
+    AdminUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        subscriptionTier:
+          $ref: "#/components/schemas/SubscriptionTier"
+        translationsUsed:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, email, subscriptionTier, translationsUsed, createdAt]

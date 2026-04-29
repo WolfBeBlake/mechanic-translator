@@ -1,0 +1,33 @@
+Build me a full-stack web application called MechanicTranslator — a tool where users paste what their mechanic told them and get back a plain English explanation of each repair, how urgent it is, whether the price is fair, and a script to negotiate if they're being overcharged.
+TECH STACK:
+
+Frontend: React with Tailwind CSS
+Backend: Node.js with Express
+Database: Supabase (PostgreSQL) for all user data, translation history, and subscription status
+Authentication: Supabase Auth (email/password and Google OAuth)
+Payments: Stripe (subscription billing)
+AI: Anthropic Claude API to process and translate mechanic quotes
+Hosting: Deploy on Replit with environment variables stored securely
+
+CORE FEATURES:
+
+Landing page with clear headline: "Stop getting ripped off by your mechanic" — explain the product simply, show a demo, have a Sign Up and Try Free button
+User authentication — sign up / log in via email or Google. Store user records in Supabase with fields: id, email, created_at, subscription_tier (free or pro), translations_used, stripe_customer_id
+Translation tool — a text area where users paste their mechanic's quote or verbal description. On submit, send this to the Claude API with a system prompt that instructs it to: break down each repair mentioned, explain in plain English what the job involves, rate urgency as Critical / Soon / Optional, give a fair price range in EUR for Ireland and UK context, flag anything suspicious, and generate a polite but firm negotiation script the user can use
+Freemium limits — free users get 2 translations total (tracked in Supabase). After 2 uses show a paywall modal explaining the Pro plan
+Stripe integration — Pro plan at €4.99/month. Use Stripe Checkout for payment. On successful payment update the user's subscription_tier to 'pro' in Supabase via a Stripe webhook. Pro users get unlimited translations and access to their full history
+User dashboard — shows how many free translations remain (for free users), full translation history with date and summary, account settings, and upgrade button
+Admin panel at /admin (protected by a hardcoded admin email check) — shows total users, total translations run, free vs pro user count, and recent signups
+Database schema in Supabase:
+
+
+users table: id, email, stripe_customer_id, subscription_tier, translations_used, created_at
+translations table: id, user_id, input_text, output_json, created_at
+
+
+Security — all API keys and secrets stored in environment variables, never in code. Rate limiting on the translation endpoint. Input sanitisation on all user inputs. Stripe webhook signature verification
+Scalability — structure the codebase with separate route files for auth, translations, payments and admin. Use Supabase connection pooling. Keep the Claude API call in its own service file so it can be swapped or upgraded easily
+
+ENVIRONMENT VARIABLES NEEDED:
+SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY, ANTHROPIC_API_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_ID, ADMIN_EMAIL
+IMPORTANT: After building, show me a checklist of every environment variable I need to fill in and where to get each one. Also show me how to set up the Stripe webhook URL once deployed.
