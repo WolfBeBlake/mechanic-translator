@@ -82,15 +82,15 @@ export default function Translator() {
               
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="text-sm text-muted-foreground flex items-center gap-2 w-full sm:w-auto">
-                  {me?.subscriptionTier === 'free' ? (
+                  {me?.subscriptionTier === 'pro' ? (
+                    <span className="text-primary font-medium flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4" /> Pro · Unlimited
+                    </span>
+                  ) : me?.subscriptionTier === 'free' ? (
                     <span className="bg-muted px-3 py-1.5 rounded-full font-medium border border-border/50">
                       {me.translationsRemaining ?? 0} free translations remaining
                     </span>
-                  ) : (
-                    <span className="text-primary font-medium flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4" /> Pro Active
-                    </span>
-                  )}
+                  ) : null}
                 </div>
                 
                 <Button 
