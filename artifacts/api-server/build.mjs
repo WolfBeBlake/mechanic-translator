@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build as esbuild } from "esbuild";
 import esbuildPluginPino from "esbuild-plugin-pino";
-import { rm } from "node:fs/promises";
+import { rm, cp, access } from "node:fs/promises";
 
 // Plugins (e.g. 'esbuild-plugin-pino') may use `require` to resolve dependencies
 globalThis.require = createRequire(import.meta.url);
@@ -118,6 +118,17 @@ globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
     `,
     },
   });
+
+  // If the frontend was built first (via build:full), copy it into dist/public
+  const frontendDist = path.resolve(artifactDir, "../mechanic-translator/dist/public");
+  const publicOut = path.resolve(distDir, "public");
+  try {
+    await access(frontendDist);
+    await cp(frontendDist, publicOut, { recursive: true });
+    console.log("✓ Copied frontend dist → dist/public");
+  } catch {
+    // Frontend dist not present — skipping (normal in Replit dev mode)
+  }
 }
 
 buildAll().catch((err) => {

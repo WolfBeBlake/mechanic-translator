@@ -1,6 +1,9 @@
 import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
+import path from "node:path";
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
 import { clerkMiddleware } from "@clerk/express";
 import { publishableKeyFromHost } from "@clerk/shared/keys";
 import {
@@ -53,5 +56,21 @@ app.use(
 );
 
 app.use("/api", router);
+
+// Serve the bundled React frontend in production.
+// The build:full script copies mechanic-translator/dist/public → dist/public.
+// On Replit the directory won't exist (frontend runs as a separate service), so this is a no-op.
+const publicDir = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "public",
+);
+
+if (fs.existsSync(publicDir)) {
+  app.use(express.static(publicDir));
+  // SPA fallback — any non-API path serves index.html so client-side routing works
+  app.get("/{*splat}", (_req, res) => {
+    res.sendFile(path.join(publicDir, "index.html"));
+  });
+}
 
 export default app;
