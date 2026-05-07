@@ -40,7 +40,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-40 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <Link href="/app" className="flex items-center gap-2 text-primary hover:opacity-90 transition-opacity">
+            <Link href="/" className="flex items-center gap-2 text-primary hover:opacity-90 transition-opacity">
               <Wrench className="w-6 h-6" />
               <span className="font-bold text-xl tracking-tight text-foreground hidden sm:inline-block">
                 MechanicTranslator
