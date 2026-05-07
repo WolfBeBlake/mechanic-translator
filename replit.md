@@ -53,11 +53,18 @@ User rows are auto-created on first authenticated `/api/me` call.
 
 ## Environment variables
 
-Auto-provisioned (do not set manually):
+Auto-provisioned on Replit (do not set manually):
 - `DATABASE_URL` — Replit Postgres
 - `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`, `VITE_CLERK_PUBLISHABLE_KEY` — Clerk auth
 - `AI_INTEGRATIONS_ANTHROPIC_BASE_URL`, `AI_INTEGRATIONS_ANTHROPIC_API_KEY` — Anthropic via Replit proxy
 - `SESSION_SECRET`
+
+Required when deploying outside Replit (e.g. Render.com):
+- `ANTHROPIC_API_KEY` — standard Anthropic API key (uses api.anthropic.com directly; takes priority over Replit proxy vars)
+- `DATABASE_URL` — Postgres connection string
+- `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY` — from Clerk dashboard
+- `VITE_CLERK_PUBLISHABLE_KEY` — same value as `CLERK_PUBLISHABLE_KEY` (needed at Vite build time)
+- `SESSION_SECRET` — any long random string
 
 Optional (set when ready):
 - `ADMIN_EMAIL` — comma-separated emails granted access to `/admin`
