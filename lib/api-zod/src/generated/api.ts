@@ -166,6 +166,14 @@ export const CreateCheckoutSessionResponse = zod.object({
 });
 
 /**
+ * Receives Stripe events. Raw body required for Stripe signature verification — do not parse as JSON.
+ * @summary Stripe webhook receiver
+ */
+export const StripeWebhookResponse = zod.object({
+  received: zod.boolean(),
+});
+
+/**
  * @summary Admin dashboard statistics
  */
 export const GetAdminStatsResponse = zod.object({

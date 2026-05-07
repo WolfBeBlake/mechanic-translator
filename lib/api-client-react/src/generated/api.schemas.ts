@@ -14,6 +14,10 @@ export interface ApiError {
   code?: string;
 }
 
+export interface WebhookAck {
+  received: boolean;
+}
+
 export interface PriceRange {
   min: number;
   max: number;

@@ -20,3 +20,4 @@ export * from "./translation";
 export * from "./translationResult";
 export * from "./urgency";
 export * from "./verdict";
+export * from "./webhookAck";
